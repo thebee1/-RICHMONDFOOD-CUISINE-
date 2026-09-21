@@ -365,10 +365,11 @@ header {
   border-left: 3px solid var(--primary);
   font-weight: 500;
 }
-.order-actions { display: flex; gap: 8px; }
+.order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .btn-action {
   flex: 1;
-  padding: 12px 10px;
+  min-width: 120px;
+  padding: 14px 12px;
   border: none;
   border-radius: 10px;
   font-weight: 700;
@@ -384,11 +385,13 @@ header {
 }
 .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
 .btn-action:active { transform: translateY(0); }
+.btn-action:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .btn-start { background: var(--secondary); color: white; }
 .btn-ready { background: var(--success); color: white; }
 .btn-deliver { background: var(--info); color: white; }
-.btn-back { background: #F0F0F0; color: var(--dark); }
+.btn-back { background: #F0F0F0; color: var(--dark); flex: 0 0 60px; min-width: 60px; }
 .btn-back:hover { background: #E0E0E0; }
+.btn-confirm { background: var(--primary); color: white; }
 .empty-state {
   flex: 1;
   display: flex; flex-direction: column;
@@ -751,17 +754,26 @@ function renderOrderCard(order, status) {
         </div>
       </div>
     </div>`).join('');
+
   let actions = '';
   if (status.id === 'new') {
-    actions = `<button class="btn-action btn-start" onclick="updateStatus('${orderNum}', 'preparing')">👨‍🍳 Commencer</button>`;
+    actions = `<button class="btn-action btn-confirm" onclick="confirmOrder('${orderNum}')">✅ Confirmer la commande</button>`;
   } else if (status.id === 'preparing') {
-    actions = `<button class="btn-action btn-ready" onclick="updateStatus('${orderNum}', 'ready')">✅ Prête</button><button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'new')">↩</button>`;
+    actions = `
+      <button class="btn-action btn-ready" onclick="updateStatus('${orderNum}', 'ready')">✅ Commande prête</button>
+      <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'new')">↩</button>
+    `;
   } else if (status.id === 'ready') {
-    actions = `<button class="btn-action btn-deliver" onclick="updateStatus('${orderNum}', 'delivering')">🛵 Livraison</button><button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'preparing')">↩</button>`;
+    actions = `
+      <button class="btn-action btn-deliver" onclick="updateStatus('${orderNum}', 'delivering')">🛵 En livraison</button>
+      <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'preparing')">↩</button>
+    `;
   } else if (status.id === 'delivering') {
-    actions = `<button class="btn-action btn-ready" onclick="updateStatus('${orderNum}', 'delivered')">🎉 Livrée</button>`;
+    actions = `<button class="btn-action btn-confirm" onclick="updateStatus('${orderNum}', 'delivered')">🎉 Commande livrée</button>`;
   }
+
   const payment = order.payment_method ? order.payment_method.toUpperCase() : '';
+
   return `
     <div class="order-card ${status.id} ${isUrgent ? 'urgent' : ''}">
       <div class="order-header">
@@ -798,9 +810,52 @@ function updateStats() {
   document.getElementById('infoTotal').textContent = orders.length;
 }
 
+// ============================================================
+// FONCTION DE CONFIRMATION DE COMMANDE (NEW → PREPARING)
+// ============================================================
+async function confirmOrder(orderNumber) {
+  if (!confirm(`Confirmer la commande #${orderNumber} ?\n\nElle passera en préparation.`)) return;
+
+  const url = CONFIG.webhook.update_status;
+  if (!url) { showToast('❌ URL non configurée', 'error'); return; }
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_number: orderNumber, state: 'preparing' })
+    });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+
+    showToast(`✅ Commande #${orderNumber} confirmée → En préparation`, 'success');
+
+    const order = orders.find(o => (o.order_number || o.id) === orderNumber);
+    if (order) order.state = 'preparing';
+    renderBoard();
+    setTimeout(fetchOrders, 1500);
+  } catch (e) {
+    console.error(e);
+    showToast('❌ Erreur de confirmation', 'error');
+  }
+}
+
+// ============================================================
+// FONCTION DE MISE À JOUR DE STATUT (boutons génériques)
+// ============================================================
 async function updateStatus(orderNumber, newStatus) {
   const url = CONFIG.webhook.update_status;
   if (!url) { showToast('❌ URL non configurée', 'error'); return; }
+
+  const messages = {
+    preparing: `Confirmer la commande #${orderNumber} ?\n\nElle passera en préparation.`,
+    ready: `La commande #${orderNumber} est-elle prête ?\n\nElle sera marquée comme prête à être livrée.`,
+    delivering: `Envoyer la commande #${orderNumber} en livraison ?\n\nLe client sera notifié.`,
+    delivered: `Confirmer la livraison de la commande #${orderNumber} ?\n\nLa commande sera clôturée.`,
+    new: `Remettre la commande #${orderNumber} en nouvelle ?`
+  };
+
+  if (!confirm(messages[newStatus] || `Changer le statut de #${orderNumber} ?`)) return;
+
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -808,8 +863,10 @@ async function updateStatus(orderNumber, newStatus) {
       body: JSON.stringify({ order_number: orderNumber, state: newStatus })
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
+
     const labels = { preparing: 'en préparation', ready: 'prête', delivering: 'en livraison', delivered: 'livrée', new: 'nouvelle' };
     showToast(`✅ Commande #${orderNumber} → ${labels[newStatus] || newStatus}`, 'success');
+
     const order = orders.find(o => (o.order_number || o.id) === orderNumber);
     if (order) order.state = newStatus;
     renderBoard();
