@@ -570,7 +570,7 @@ header {
     <span>📊 <span id="infoTotal">0</span> commandes actives</span>
   </div>
   <div class="right">
-    <span>Rafraîchissement auto : <span id="refreshInterval">15</span>s</span>
+    <span id="refreshStatus">🔄 Mode manuel — cliquez sur 🔄 pour actualiser</span>
     <span id="lastUpdate">Dernière MAJ : --</span>
   </div>
 </div>
@@ -592,7 +592,7 @@ let CONFIG = {
   webhook: { get_orders: '', update_status: '' },
   refresh_interval_seconds: 15,
   sound_alerts: true,
-  auto_refresh: true,
+  auto_refresh: false, // ⚠️ RAFRAÎCHISSEMENT AUTO DÉSACTIVÉ
   urgent_after_minutes: 15
 };
 
@@ -606,7 +606,6 @@ const STATUSES = [
 let orders = [];
 let previousOrderIds = new Set();
 let soundEnabled = true;
-let refreshTimer = null;
 let clockTimer = null;
 let firstLoad = true;
 
@@ -614,18 +613,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
   startClock();
   renderBoard();
-  startRefreshLoop();
+  fetchOrders(); // Premier chargement
   setTimeout(() => document.getElementById('loading').classList.add('hide'), 800);
   soundEnabled = CONFIG.sound_alerts;
   updateSoundBtn();
-  document.getElementById('refreshInterval').textContent = CONFIG.refresh_interval_seconds;
 });
 
 async function loadConfig() {
   try {
     const r = await fetch('./menu-data.json');
-    CONFIG = { ...CONFIG, ...(await r.json()) };
+    const data = await r.json();
+    CONFIG = { ...CONFIG, ...data };
     console.log('✅ Config chargée');
+    console.log('🔄 Auto-refresh :', CONFIG.auto_refresh ? 'ACTIVÉ' : 'DÉSACTIVÉ');
   } catch (e) {
     console.warn('Config par défaut utilisée');
   }
@@ -643,13 +643,6 @@ function updateClock() {
   const s = String(now.getSeconds()).padStart(2, '0');
   document.getElementById('clock').textContent = `${h}:${m}:${s}`;
   document.getElementById('infoTime').textContent = `${h}:${m}`;
-}
-
-function startRefreshLoop() {
-  fetchOrders();
-  if (refreshTimer) clearInterval(refreshTimer);
-  const interval = (CONFIG.refresh_interval_seconds || 15) * 1000;
-  refreshTimer = setInterval(fetchOrders, interval);
 }
 
 async function manualRefresh() {
@@ -810,15 +803,10 @@ function updateStats() {
   document.getElementById('infoTotal').textContent = orders.length;
 }
 
-// ============================================================
-// FONCTION DE CONFIRMATION DE COMMANDE (NEW → PREPARING)
-// ============================================================
 async function confirmOrder(orderNumber) {
   if (!confirm(`Confirmer la commande #${orderNumber} ?\n\nElle passera en préparation.`)) return;
-
   const url = CONFIG.webhook.update_status;
   if (!url) { showToast('❌ URL non configurée', 'error'); return; }
-
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -826,9 +814,7 @@ async function confirmOrder(orderNumber) {
       body: JSON.stringify({ order_number: orderNumber, state: 'preparing' })
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
-
     showToast(`✅ Commande #${orderNumber} confirmée → En préparation`, 'success');
-
     const order = orders.find(o => (o.order_number || o.id) === orderNumber);
     if (order) order.state = 'preparing';
     renderBoard();
@@ -839,9 +825,6 @@ async function confirmOrder(orderNumber) {
   }
 }
 
-// ============================================================
-// FONCTION DE MISE À JOUR DE STATUT (boutons génériques)
-// ============================================================
 async function updateStatus(orderNumber, newStatus) {
   const url = CONFIG.webhook.update_status;
   if (!url) { showToast('❌ URL non configurée', 'error'); return; }
@@ -853,7 +836,6 @@ async function updateStatus(orderNumber, newStatus) {
     delivered: `Confirmer la livraison de la commande #${orderNumber} ?\n\nLa commande sera clôturée.`,
     new: `Remettre la commande #${orderNumber} en nouvelle ?`
   };
-
   if (!confirm(messages[newStatus] || `Changer le statut de #${orderNumber} ?`)) return;
 
   try {
@@ -863,10 +845,8 @@ async function updateStatus(orderNumber, newStatus) {
       body: JSON.stringify({ order_number: orderNumber, state: newStatus })
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
-
     const labels = { preparing: 'en préparation', ready: 'prête', delivering: 'en livraison', delivered: 'livrée', new: 'nouvelle' };
     showToast(`✅ Commande #${orderNumber} → ${labels[newStatus] || newStatus}`, 'success');
-
     const order = orders.find(o => (o.order_number || o.id) === orderNumber);
     if (order) order.state = newStatus;
     renderBoard();
