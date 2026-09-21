@@ -8,8 +8,8 @@
     "get_orders": "https://deploy-showoff-engaging.ngrok-free.dev/webhook/kitchen-orders",
     "update_status": "https://deploy-showoff-engaging.ngrok-free.dev/webhook/kitchen-update"
   },
-  "refresh_interval_seconds": 15,
+  "refresh_interval_seconds": 0,
   "sound_alerts": true,
-  "auto_refresh": true,
+  "auto_refresh": false,
   "urgent_after_minutes": 15
 }
