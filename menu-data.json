@@ -10,6 +10,6 @@
   },
   "refresh_interval_seconds": 15,
   "sound_alerts": true,
-  "auto_refresh": false,
+  "auto_refresh": true,
   "urgent_after_minutes": 15
 }
