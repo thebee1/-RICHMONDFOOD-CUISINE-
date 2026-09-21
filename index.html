@@ -119,9 +119,7 @@ header {
 .info-bar .left { display: flex; gap: 25px; }
 .info-bar .right { display: flex; gap: 15px; opacity: 0.8; }
 
-/* ============================================================
-   BOARD & COLUMNS
-   ============================================================ */
+/* BOARD & COLUMNS */
 .board {
   flex: 1;
   padding: 15px;
@@ -129,7 +127,7 @@ header {
   grid-template-columns: repeat(4, 1fr);
   gap: 15px;
   overflow: hidden;
-  min-height: 0; /* IMPORTANT pour que flex fonctionne */
+  min-height: 0;
 }
 .column {
   background: white;
@@ -139,7 +137,7 @@ header {
   flex-direction: column;
   overflow: hidden;
   border-top: 5px solid;
-  min-height: 0; /* IMPORTANT pour scroll interne */
+  min-height: 0;
   max-height: 100%;
 }
 .column.new { border-top-color: var(--primary); }
@@ -151,7 +149,7 @@ header {
   display: flex; justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #F0F0F0;
-  flex-shrink: 0; /* Le header reste fixe */
+  flex-shrink: 0;
 }
 .column-title { display: flex; align-items: center; gap: 10px; }
 .column-icon { font-size: 1.4rem; }
@@ -179,7 +177,7 @@ header {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 0; /* CRUCIAL */
+  min-height: 0;
   scroll-behavior: smooth;
 }
 .column-body::-webkit-scrollbar { width: 10px; }
@@ -203,9 +201,7 @@ header {
   background: #FAFAFA;
 }
 
-/* ============================================================
-   ORDER CARD (COMPACT avec sticky actions)
-   ============================================================ */
+/* ORDER CARD (COMPACT avec sticky actions) */
 .order-card {
   background: white;
   border-radius: 12px;
@@ -216,7 +212,7 @@ header {
   animation: slideIn 0.4s ease;
   position: relative;
   overflow: hidden;
-  flex-shrink: 0; /* La carte ne se compresse pas */
+  flex-shrink: 0;
 }
 .order-card::before {
   content: '';
@@ -228,13 +224,8 @@ header {
 .order-card.preparing::before { background: var(--secondary); }
 .order-card.ready::before { background: var(--success); }
 .order-card.delivering::before { background: var(--info); }
-.order-card:hover {
-  box-shadow: var(--shadow-lg);
-  border-color: #E0E0E0;
-}
-.order-card.urgent {
-  border-color: var(--primary);
-}
+.order-card:hover { box-shadow: var(--shadow-lg); border-color: #E0E0E0; }
+.order-card.urgent { border-color: var(--primary); }
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(-15px); }
   to { opacity: 1; transform: translateY(0); }
@@ -244,7 +235,7 @@ header {
 .order-content {
   padding: 12px 12px 0 12px;
   overflow-y: auto;
-  max-height: 280px; /* Limite la hauteur du contenu scrollable */
+  max-height: 280px;
 }
 .order-content::-webkit-scrollbar { width: 6px; }
 .order-content::-webkit-scrollbar-thumb { background: #D0D0D0; border-radius: 3px; }
@@ -316,7 +307,7 @@ header {
   font-weight: 500;
 }
 
-/* BOUTONS STICKY - TOUJOURS VISIBLES EN BAS DE LA CARTE */
+/* BOUTONS STICKY */
 .order-actions {
   display: flex;
   gap: 8px;
