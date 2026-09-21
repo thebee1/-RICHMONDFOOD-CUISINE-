@@ -750,19 +750,19 @@ function renderOrderCard(order, status) {
 
   let actions = '';
   if (status.id === 'new') {
-    actions = `<button class="btn-action btn-confirm" onclick="confirmOrder('${orderNum}')">✅ Confirmer la commande</button>`;
+    actions = `<button class="btn-action btn-confirm" onclick="confirmOrder('${orderNum}', this)">✅ Confirmer la commande</button>`;
   } else if (status.id === 'preparing') {
     actions = `
-      <button class="btn-action btn-ready" onclick="updateStatus('${orderNum}', 'ready')">✅ Commande prête</button>
-      <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'new')">↩</button>
+      <button class="btn-action btn-ready" onclick="updateStatus('${orderNum}', 'ready', this)">✅ Commande prête</button>
+      <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'new', this)">↩</button>
     `;
   } else if (status.id === 'ready') {
     actions = `
-      <button class="btn-action btn-deliver" onclick="updateStatus('${orderNum}', 'delivering')">🛵 En livraison</button>
-      <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'preparing')">↩</button>
+      <button class="btn-action btn-deliver" onclick="updateStatus('${orderNum}', 'delivering', this)">🛵 En livraison</button>
+      <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'preparing', this)">↩</button>
     `;
   } else if (status.id === 'delivering') {
-    actions = `<button class="btn-action btn-confirm" onclick="updateStatus('${orderNum}', 'delivered')">🎉 Commande livrée</button>`;
+    actions = `<button class="btn-action btn-confirm" onclick="updateStatus('${orderNum}', 'delivered', this)">🎉 Commande livrée</button>`;
   }
 
   const payment = order.payment_method ? order.payment_method.toUpperCase() : '';
@@ -803,32 +803,50 @@ function updateStats() {
   document.getElementById('infoTotal').textContent = orders.length;
 }
 
-async function confirmOrder(orderNumber) {
+async function confirmOrder(orderNumber, btn) {
   if (!confirm(`Confirmer la commande #${orderNumber} ?\n\nElle passera en préparation.`)) return;
-  const url = CONFIG.webhook.update_status;
-  if (!url) { showToast('❌ URL non configurée', 'error'); return; }
+
+  // 1. Désactiver le bouton pour éviter les clics multiples
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ Traitement...';
+  }
+
   try {
+    const url = CONFIG.webhook.update_status;
+    if (!url) throw new Error('URL non configurée');
+
+    // 2. Envoyer la requête à n8n
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ order_number: orderNumber, state: 'preparing' })
     });
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    showToast(`✅ Commande #${orderNumber} confirmée → En préparation`, 'success');
-    const order = orders.find(o => (o.order_number || o.id) === orderNumber);
-    if (order) order.state = 'preparing';
-    renderBoard();
-    setTimeout(fetchOrders, 1500);
+
+    // 3. Attendre la confirmation du serveur
+    await response.json();
+
+    // 4. Rafraîchir les données depuis Odoo pour voir le vrai statut
+    showToast(`✅ Commande #${orderNumber} confirmée. Mise à jour...`, 'success');
+    await fetchOrders();
+
   } catch (e) {
     console.error(e);
-    showToast('❌ Erreur de confirmation', 'error');
+    showToast(`❌ Erreur lors de la confirmation de #${orderNumber}`, 'error');
+    // En cas d'erreur, on rafraîchit aussi pour être sûr de l'état
+    await fetchOrders();
+  } finally {
+    // 5. Réactiver le bouton si le rafraîchissement n'a pas recréé la carte
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '✅ Confirmer la commande';
+    }
   }
 }
 
-async function updateStatus(orderNumber, newStatus) {
-  const url = CONFIG.webhook.update_status;
-  if (!url) { showToast('❌ URL non configurée', 'error'); return; }
-
+async function updateStatus(orderNumber, newStatus, btn) {
   const messages = {
     preparing: `Confirmer la commande #${orderNumber} ?\n\nElle passera en préparation.`,
     ready: `La commande #${orderNumber} est-elle prête ?\n\nElle sera marquée comme prête à être livrée.`,
@@ -836,24 +854,47 @@ async function updateStatus(orderNumber, newStatus) {
     delivered: `Confirmer la livraison de la commande #${orderNumber} ?\n\nLa commande sera clôturée.`,
     new: `Remettre la commande #${orderNumber} en nouvelle ?`
   };
+
   if (!confirm(messages[newStatus] || `Changer le statut de #${orderNumber} ?`)) return;
 
+  // 1. Désactiver le bouton pour éviter les clics multiples
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ Traitement...';
+  }
+
   try {
+    const url = CONFIG.webhook.update_status;
+    if (!url) throw new Error('URL non configurée');
+
+    // 2. Envoyer la requête à n8n
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ order_number: orderNumber, state: newStatus })
     });
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
+
+    // 3. Attendre la confirmation du serveur
+    await response.json();
+
+    // 4. Rafraîchir les données depuis Odoo pour voir le vrai statut
     const labels = { preparing: 'en préparation', ready: 'prête', delivering: 'en livraison', delivered: 'livrée', new: 'nouvelle' };
-    showToast(`✅ Commande #${orderNumber} → ${labels[newStatus] || newStatus}`, 'success');
-    const order = orders.find(o => (o.order_number || o.id) === orderNumber);
-    if (order) order.state = newStatus;
-    renderBoard();
-    setTimeout(fetchOrders, 1500);
+    showToast(`✅ Commande #${orderNumber} → ${labels[newStatus] || newStatus}. Mise à jour...`, 'success');
+    await fetchOrders();
+
   } catch (e) {
     console.error(e);
-    showToast('❌ Erreur de mise à jour', 'error');
+    showToast(`❌ Erreur de mise à jour pour #${orderNumber}`, 'error');
+    // En cas d'erreur, on rafraîchit aussi pour être sûr de l'état
+    await fetchOrders();
+  } finally {
+    // 5. Réactiver le bouton si le rafraîchissement n'a pas recréé la carte
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = newStatus === 'preparing' ? '✅ Confirmer la commande' : 'Mettre à jour';
+    }
   }
 }
 
