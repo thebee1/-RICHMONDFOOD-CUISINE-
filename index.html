@@ -59,14 +59,8 @@ header {
   background: rgba(230,57,70,0.08);
   border: 2px solid rgba(230,57,70,0.15);
 }
-.stat-badge.preparing {
-  background: rgba(247,127,0,0.08);
-  border-color: rgba(247,127,0,0.15);
-}
-.stat-badge.ready {
-  background: rgba(6,167,125,0.08);
-  border-color: rgba(6,167,125,0.15);
-}
+.stat-badge.preparing { background: rgba(247,127,0,0.08); border-color: rgba(247,127,0,0.15); }
+.stat-badge.ready { background: rgba(6,167,125,0.08); border-color: rgba(6,167,125,0.15); }
 .stat-badge .dot {
   width: 10px; height: 10px; border-radius: 50%;
   background: var(--primary);
@@ -74,10 +68,7 @@ header {
 }
 .stat-badge.preparing .dot { background: var(--secondary); }
 .stat-badge.ready .dot { background: var(--success); }
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.2); }
-}
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
 .stat-badge .num { font-weight: 800; font-size: 1.2rem; color: var(--primary); }
 .stat-badge.preparing .num { color: var(--secondary); }
 .stat-badge.ready .num { color: var(--success); }
@@ -85,29 +76,20 @@ header {
 .header-right { display: flex; gap: 12px; align-items: center; }
 .clock {
   font-family: 'Consolas', monospace;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--dark);
-  padding: 8px 15px;
-  background: var(--light);
-  border-radius: 10px;
-  border: 2px solid #E5E5E5;
+  font-size: 1.3rem; font-weight: 700; color: var(--dark);
+  padding: 8px 15px; background: var(--light);
+  border-radius: 10px; border: 2px solid #E5E5E5;
 }
 .icon-btn {
   width: 45px; height: 45px;
-  border: 2px solid #E5E5E5;
-  background: white;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.2s;
+  border: 2px solid #E5E5E5; background: white;
+  border-radius: 12px; cursor: pointer;
+  font-size: 1.2rem; transition: all 0.2s;
   display: flex; align-items: center; justify-content: center;
 }
 .icon-btn:hover {
-  border-color: var(--primary);
-  background: var(--primary);
-  color: white;
-  transform: translateY(-2px);
+  border-color: var(--primary); background: var(--primary);
+  color: white; transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(230,57,70,0.2);
 }
 .status-indicator {
@@ -116,42 +98,38 @@ header {
   background: rgba(6,167,125,0.1);
   border: 2px solid var(--success);
   border-radius: 50px;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.8rem; font-weight: 700;
   color: var(--success);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  text-transform: uppercase; letter-spacing: 0.5px;
 }
 .status-indicator.offline {
   background: rgba(230,57,70,0.1);
-  border-color: var(--primary);
-  color: var(--primary);
+  border-color: var(--primary); color: var(--primary);
 }
 .status-indicator .dot {
   width: 8px; height: 8px; border-radius: 50%;
-  background: currentColor;
-  animation: pulse 2s infinite;
+  background: currentColor; animation: pulse 2s infinite;
 }
 .info-bar {
-  background: var(--dark);
-  color: white;
-  height: 45px;
-  padding: 0 25px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  flex-shrink: 0;
+  background: var(--dark); color: white;
+  height: 45px; padding: 0 25px;
+  display: flex; justify-content: space-between;
+  align-items: center; font-size: 0.85rem; flex-shrink: 0;
 }
 .info-bar .left { display: flex; gap: 25px; }
 .info-bar .right { display: flex; gap: 15px; opacity: 0.8; }
+
+/* ============================================================
+   BOARD & COLUMNS
+   ============================================================ */
 .board {
   flex: 1;
-  padding: 20px;
+  padding: 15px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
+  gap: 15px;
   overflow: hidden;
+  min-height: 0; /* IMPORTANT pour que flex fonctionne */
 }
 .column {
   background: white;
@@ -161,58 +139,84 @@ header {
   flex-direction: column;
   overflow: hidden;
   border-top: 5px solid;
+  min-height: 0; /* IMPORTANT pour scroll interne */
+  max-height: 100%;
 }
 .column.new { border-top-color: var(--primary); }
 .column.preparing { border-top-color: var(--secondary); }
 .column.ready { border-top-color: var(--success); }
 .column.delivering { border-top-color: var(--info); }
 .column-header {
-  padding: 18px 20px;
-  display: flex;
-  justify-content: space-between;
+  padding: 15px 20px;
+  display: flex; justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #F0F0F0;
+  flex-shrink: 0; /* Le header reste fixe */
 }
-.column-title { display: flex; align-items: center; gap: 12px; }
-.column-icon { font-size: 1.5rem; }
-.column-title-text { font-size: 0.95rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+.column-title { display: flex; align-items: center; gap: 10px; }
+.column-icon { font-size: 1.4rem; }
+.column-title-text { font-size: 0.9rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
 .column.new .column-title-text { color: var(--primary); }
 .column.preparing .column-title-text { color: var(--secondary); }
 .column.ready .column-title-text { color: var(--success); }
 .column.delivering .column-title-text { color: var(--info); }
 .column-count {
-  background: var(--light);
-  color: var(--dark);
-  padding: 4px 14px;
-  border-radius: 50px;
-  font-weight: 800;
-  font-size: 0.95rem;
+  background: var(--light); color: var(--dark);
+  padding: 4px 14px; border-radius: 50px;
+  font-weight: 800; font-size: 0.9rem;
 }
 .column.new .column-count { background: rgba(230,57,70,0.1); color: var(--primary); }
 .column.preparing .column-count { background: rgba(247,127,0,0.1); color: var(--secondary); }
 .column.ready .column-count { background: rgba(6,167,125,0.1); color: var(--success); }
 .column.delivering .column-count { background: rgba(69,123,157,0.1); color: var(--info); }
+
+/* SCROLL AREA */
 .column-body {
   flex: 1;
   overflow-y: auto;
-  padding: 15px;
+  overflow-x: hidden;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
+  min-height: 0; /* CRUCIAL */
+  scroll-behavior: smooth;
 }
-.column-body::-webkit-scrollbar { width: 8px; }
-.column-body::-webkit-scrollbar-track { background: #F8F8F8; }
-.column-body::-webkit-scrollbar-thumb { background: #D0D0D0; border-radius: 4px; }
+.column-body::-webkit-scrollbar { width: 10px; }
+.column-body::-webkit-scrollbar-track { background: #F0F0F0; border-radius: 5px; }
+.column-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary), var(--secondary));
+  border-radius: 5px;
+}
 .column-body::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* INDICATEUR DE SCROLL */
+.scroll-hint {
+  text-align: center;
+  padding: 5px;
+  color: var(--gray);
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.6;
+  flex-shrink: 0;
+  border-top: 1px dashed #E0E0E0;
+  background: #FAFAFA;
+}
+
+/* ============================================================
+   ORDER CARD (COMPACT avec sticky actions)
+   ============================================================ */
 .order-card {
   background: white;
   border-radius: 12px;
   border: 2px solid #F0F0F0;
-  padding: 15px;
+  display: flex;
+  flex-direction: column;
   transition: all 0.3s;
   animation: slideIn 0.4s ease;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0; /* La carte ne se compresse pas */
 }
 .order-card::before {
   content: '';
@@ -225,163 +229,115 @@ header {
 .order-card.ready::before { background: var(--success); }
 .order-card.delivering::before { background: var(--info); }
 .order-card:hover {
-  transform: translateY(-3px);
   box-shadow: var(--shadow-lg);
   border-color: #E0E0E0;
 }
 .order-card.urgent {
   border-color: var(--primary);
-  animation: slideIn 0.4s ease, urgentPulse 2s infinite;
 }
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(-15px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@keyframes urgentPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(230,57,70,0); }
-  50% { box-shadow: 0 0 0 8px rgba(230,57,70,0); }
+
+/* CONTENU SCROLLABLE DE LA CARTE */
+.order-content {
+  padding: 12px 12px 0 12px;
+  overflow-y: auto;
+  max-height: 280px; /* Limite la hauteur du contenu scrollable */
 }
+.order-content::-webkit-scrollbar { width: 6px; }
+.order-content::-webkit-scrollbar-thumb { background: #D0D0D0; border-radius: 3px; }
+
 .order-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px dashed #E5E5E5;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 10px;
+  padding-bottom: 10px; border-bottom: 1px dashed #E5E5E5;
 }
-.order-number {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--dark);
-  line-height: 1.2;
-}
+.order-number { font-size: 1.1rem; font-weight: 800; color: var(--dark); line-height: 1.2; }
 .order-source {
-  font-size: 0.7rem;
-  padding: 4px 10px;
-  border-radius: 50px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 0.65rem; padding: 3px 8px; border-radius: 50px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
 }
 .source-website { background: rgba(69,123,157,0.15); color: var(--info); }
 .source-whatsapp { background: rgba(6,167,125,0.15); color: var(--success); }
 .order-time {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: var(--gray);
-  margin-bottom: 12px;
-  font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.75rem; color: var(--gray); margin-bottom: 8px; font-weight: 500;
 }
 .order-time.urgent { color: var(--primary); font-weight: 700; }
 .order-customer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--light);
-  border-radius: 8px;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; background: var(--light);
+  border-radius: 8px; margin-bottom: 8px;
+  font-size: 0.85rem; font-weight: 600;
 }
 .order-contact {
-  font-size: 0.8rem;
-  color: var(--gray);
-  margin-bottom: 12px;
-  line-height: 1.5;
+  font-size: 0.75rem; color: var(--gray);
+  margin-bottom: 8px; line-height: 1.4;
 }
 .order-contact strong { color: var(--dark); }
 .order-items {
-  background: #FAFAFA;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 12px;
+  background: #FAFAFA; border-radius: 8px;
+  padding: 8px 10px; margin-bottom: 8px;
   border: 1px solid #F0F0F0;
 }
 .order-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 6px 0;
-  font-size: 0.9rem;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; padding: 4px 0; font-size: 0.85rem;
 }
-.order-item:not(:last-child) {
-  border-bottom: 1px solid #F0F0F0;
-}
-.item-left { display: flex; gap: 10px; align-items: flex-start; flex: 1; }
+.order-item:not(:last-child) { border-bottom: 1px solid #F0F0F0; }
+.item-left { display: flex; gap: 8px; align-items: flex-start; flex: 1; }
 .item-qty {
-  background: var(--primary);
-  color: white;
-  font-weight: 800;
-  padding: 2px 10px;
-  border-radius: 50px;
-  font-size: 0.8rem;
-  min-width: 32px;
-  text-align: center;
+  background: var(--primary); color: white;
+  font-weight: 800; padding: 1px 8px; border-radius: 50px;
+  font-size: 0.75rem; min-width: 28px; text-align: center;
 }
 .item-name { font-weight: 600; color: var(--dark); flex: 1; }
-.item-notes {
-  font-size: 0.75rem;
-  color: var(--primary);
-  font-style: italic;
-  margin-top: 3px;
-}
+.item-notes { font-size: 0.7rem; color: var(--primary); font-style: italic; margin-top: 2px; }
 .order-total {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-top: 2px solid #F0F0F0;
-  margin-bottom: 12px;
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 8px 0;
+  border-top: 2px solid #F0F0F0; margin-bottom: 8px;
 }
-.order-total-label { font-size: 0.85rem; color: var(--gray); font-weight: 600; text-transform: uppercase; }
-.order-total-value { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
-.order-meta {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
+.order-total-label { font-size: 0.75rem; color: var(--gray); font-weight: 600; text-transform: uppercase; }
+.order-total-value { font-size: 1.05rem; font-weight: 800; color: var(--primary); }
+.order-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
 .meta-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: var(--light);
-  border-radius: 50px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--dark);
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; background: var(--light);
+  border-radius: 50px; font-size: 0.7rem;
+  font-weight: 600; color: var(--dark);
 }
 .order-notes {
-  background: rgba(230,57,70,0.08);
-  color: var(--primary);
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  font-size: 0.85rem;
-  border-left: 3px solid var(--primary);
+  background: rgba(230,57,70,0.08); color: var(--primary);
+  padding: 8px; border-radius: 8px; margin-bottom: 8px;
+  font-size: 0.8rem; border-left: 3px solid var(--primary);
   font-weight: 500;
 }
-.order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* BOUTONS STICKY - TOUJOURS VISIBLES EN BAS DE LA CARTE */
+.order-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background: white;
+  border-top: 2px solid #F0F0F0;
+  flex-wrap: wrap;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+}
 .btn-action {
   flex: 1;
-  min-width: 120px;
-  padding: 14px 12px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  min-width: 110px;
+  padding: 14px 10px;
+  border: none; border-radius: 10px;
+  font-weight: 700; font-size: 0.8rem;
+  cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; text-transform: uppercase; letter-spacing: 0.5px;
 }
 .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
 .btn-action:active { transform: translateY(0); }
@@ -389,120 +345,67 @@ header {
 .btn-start { background: var(--secondary); color: white; }
 .btn-ready { background: var(--success); color: white; }
 .btn-deliver { background: var(--info); color: white; }
-.btn-back { background: #F0F0F0; color: var(--dark); flex: 0 0 60px; min-width: 60px; }
+.btn-back { background: #F0F0F0; color: var(--dark); flex: 0 0 50px; min-width: 50px; padding: 14px 5px; }
 .btn-back:hover { background: #E0E0E0; }
 .btn-confirm { background: var(--primary); color: white; }
+
 .empty-state {
-  flex: 1;
-  display: flex; flex-direction: column;
+  flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  color: var(--gray);
-  padding: 40px 20px;
-  text-align: center;
+  color: var(--gray); padding: 40px 20px; text-align: center;
 }
-.empty-icon {
-  font-size: 3.5rem;
-  opacity: 0.2;
-  margin-bottom: 15px;
-}
+.empty-icon { font-size: 3rem; opacity: 0.2; margin-bottom: 15px; }
 .empty-text { font-size: 0.9rem; font-weight: 500; }
+
+/* ALERT, TOAST, LOADING */
 .alert-overlay {
   position: fixed; inset: 0;
   background: linear-gradient(135deg, rgba(230,57,70,0.98), rgba(247,127,0,0.98));
-  z-index: 9999;
-  display: none;
-  flex-direction: column;
-  align-items: center; justify-content: center;
-  color: white;
-  text-align: center;
+  z-index: 9999; display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  color: white; text-align: center;
 }
 .alert-overlay.show { display: flex; animation: alertIn 0.5s ease; }
-@keyframes alertIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-.alert-icon {
-  font-size: 8rem;
-  margin-bottom: 20px;
-  animation: bounce 0.8s infinite alternate;
-}
-@keyframes bounce {
-  from { transform: translateY(0); }
-  to { transform: translateY(-25px); }
-}
-.alert-title {
-  font-size: 3.5rem;
-  font-weight: 900;
-  margin-bottom: 15px;
-  letter-spacing: 2px;
-}
-.alert-text {
-  font-size: 1.5rem;
-  opacity: 0.95;
-  margin-bottom: 40px;
-  font-weight: 600;
-}
+@keyframes alertIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+.alert-icon { font-size: 8rem; margin-bottom: 20px; animation: bounce 0.8s infinite alternate; }
+@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-25px); } }
+.alert-title { font-size: 3.5rem; font-weight: 900; margin-bottom: 15px; letter-spacing: 2px; }
+.alert-text { font-size: 1.5rem; opacity: 0.95; margin-bottom: 40px; font-weight: 600; }
 .alert-close {
-  padding: 18px 50px;
-  background: white;
-  color: var(--primary);
-  border: none;
-  border-radius: 50px;
-  font-size: 1.2rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  padding: 18px 50px; background: white; color: var(--primary);
+  border: none; border-radius: 50px; font-size: 1.2rem;
+  font-weight: 800; cursor: pointer; transition: all 0.2s;
+  letter-spacing: 1px; text-transform: uppercase;
 }
-.alert-close:hover {
-  transform: scale(1.05);
-  box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-}
+.alert-close:hover { transform: scale(1.05); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
 .toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
+  position: fixed; bottom: 30px; left: 50%;
   transform: translateX(-50%) translateY(100px);
-  background: var(--dark);
-  color: white;
-  padding: 15px 30px;
-  border-radius: 50px;
-  font-weight: 600;
-  box-shadow: var(--shadow-lg);
-  opacity: 0;
-  transition: all 0.3s;
-  z-index: 1000;
+  background: var(--dark); color: white;
+  padding: 15px 30px; border-radius: 50px;
+  font-weight: 600; box-shadow: var(--shadow-lg);
+  opacity: 0; transition: all 0.3s; z-index: 1000;
 }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 .toast.success { background: var(--success); }
 .toast.error { background: var(--primary); }
 .loading {
-  position: fixed; inset: 0;
-  background: var(--light);
+  position: fixed; inset: 0; background: var(--light);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  z-index: 10000;
-  transition: opacity 0.5s;
+  z-index: 10000; transition: opacity 0.5s;
 }
 .loading.hide { opacity: 0; pointer-events: none; }
 .spinner {
   width: 60px; height: 60px;
-  border: 5px solid #E5E5E5;
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+  border: 5px solid #E5E5E5; border-top-color: var(--primary);
+  border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text { color: var(--dark); font-weight: 600; font-size: 1.1rem; }
-@media (max-width: 1300px) {
-  .board { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 1000px) {
-  .board { grid-template-columns: repeat(2, 1fr); }
-  .header-center { display: none; }
-}
+
+@media (max-width: 1300px) { .board { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1000px) { .board { grid-template-columns: repeat(2, 1fr); } .header-center { display: none; } }
 @media (max-width: 700px) {
   .board { grid-template-columns: 1fr; overflow-y: auto; }
   body { overflow: auto; }
@@ -533,7 +436,6 @@ header {
       <div class="logo-sub">Tableau de Bord Cuisine</div>
     </div>
   </div>
-
   <div class="header-center">
     <div class="stat-badge">
       <div class="dot"></div>
@@ -551,7 +453,6 @@ header {
       <div class="label">Prêtes</div>
     </div>
   </div>
-
   <div class="header-right">
     <div class="status-indicator" id="statusBadge">
       <div class="dot"></div>
@@ -584,15 +485,12 @@ header {
 </audio>
 
 <script>
-// ============================================================
-// CONFIG
-// ============================================================
 let CONFIG = {
   restaurant: { name: 'RICHMOND FOOD', tagline: 'Tableau de Bord Cuisine', logo: '🍽️' },
   webhook: { get_orders: '', update_status: '' },
   refresh_interval_seconds: 15,
   sound_alerts: true,
-  auto_refresh: false, // ⚠️ RAFRAÎCHISSEMENT AUTO DÉSACTIVÉ
+  auto_refresh: false,
   urgent_after_minutes: 15
 };
 
@@ -613,7 +511,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
   startClock();
   renderBoard();
-  fetchOrders(); // Premier chargement
+  fetchOrders();
   setTimeout(() => document.getElementById('loading').classList.add('hide'), 800);
   soundEnabled = CONFIG.sound_alerts;
   updateSoundBtn();
@@ -697,8 +595,7 @@ function onNewOrder(order) {
 function playSound() {
   try {
     const audio = document.getElementById('notifSound');
-    audio.currentTime = 0;
-    audio.volume = 1;
+    audio.currentTime = 0; audio.volume = 1;
     audio.play().catch(() => {});
   } catch (e) {}
 }
@@ -711,6 +608,8 @@ function renderBoard() {
   const board = document.getElementById('board');
   board.innerHTML = STATUSES.map(status => {
     const statusOrders = orders.filter(o => (o.state || o.status || 'new') === status.id);
+    const hasMany = statusOrders.length > 2;
+
     return `
       <div class="column ${status.id}">
         <div class="column-header">
@@ -720,9 +619,12 @@ function renderBoard() {
           </div>
           <div class="column-count">${statusOrders.length}</div>
         </div>
-        <div class="column-body">
-          ${statusOrders.length === 0 ? `<div class="empty-state"><div class="empty-icon">${status.icon}</div><div class="empty-text">Aucune commande</div></div>` : statusOrders.map(o => renderOrderCard(o, status)).join('')}
+        <div class="column-body" id="col-${status.id}">
+          ${statusOrders.length === 0
+            ? `<div class="empty-state"><div class="empty-icon">${status.icon}</div><div class="empty-text">Aucune commande</div></div>`
+            : statusOrders.map(o => renderOrderCard(o, status)).join('')}
         </div>
+        ${hasMany ? `<div class="scroll-hint">↕ Faites défiler pour voir les ${statusOrders.length} commandes</div>` : ''}
       </div>`;
   }).join('');
   updateStats();
@@ -753,35 +655,37 @@ function renderOrderCard(order, status) {
     actions = `<button class="btn-action btn-confirm" onclick="confirmOrder('${orderNum}', this)">✅ Confirmer la commande</button>`;
   } else if (status.id === 'preparing') {
     actions = `
-      <button class="btn-action btn-ready" onclick="updateStatus('${orderNum}', 'ready', this)">✅ Commande prête</button>
+      <button class="btn-action btn-ready" onclick="updateStatus('${orderNum}', 'ready', this)">✅ Prête</button>
       <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'new', this)">↩</button>
     `;
   } else if (status.id === 'ready') {
     actions = `
-      <button class="btn-action btn-deliver" onclick="updateStatus('${orderNum}', 'delivering', this)">🛵 En livraison</button>
+      <button class="btn-action btn-deliver" onclick="updateStatus('${orderNum}', 'delivering', this)">🛵 Livraison</button>
       <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'preparing', this)">↩</button>
     `;
   } else if (status.id === 'delivering') {
-    actions = `<button class="btn-action btn-confirm" onclick="updateStatus('${orderNum}', 'delivered', this)">🎉 Commande livrée</button>`;
+    actions = `<button class="btn-action btn-confirm" onclick="updateStatus('${orderNum}', 'delivered', this)">🎉 Livrée</button>`;
   }
 
   const payment = order.payment_method ? order.payment_method.toUpperCase() : '';
 
   return `
     <div class="order-card ${status.id} ${isUrgent ? 'urgent' : ''}">
-      <div class="order-header">
-        <div class="order-number">#${orderNum}</div>
-        <div class="order-source ${sourceClass}">${sourceLabel}</div>
+      <div class="order-content">
+        <div class="order-header">
+          <div class="order-number">#${orderNum}</div>
+          <div class="order-source ${sourceClass}">${sourceLabel}</div>
+        </div>
+        <div class="order-time ${isUrgent ? 'urgent' : ''}">
+          <span>⏱️</span><span>Il y a ${timeSince.text}</span>${isUrgent ? '<span>⚠️</span>' : ''}
+        </div>
+        <div class="order-customer"><span>👤</span><span>${customer}</span></div>
+        ${order.customer_phone || order.customer_address ? `<div class="order-contact">${order.customer_phone ? `📞 <strong>${order.customer_phone}</strong><br>` : ''}${order.customer_address ? `📍 ${order.customer_address}` : ''}</div>` : ''}
+        <div class="order-items">${itemsHtml || '<div style="text-align:center;color:#999;padding:10px;font-size:0.8rem;">Aucun article</div>'}</div>
+        <div class="order-total"><span class="order-total-label">Total</span><span class="order-total-value">${(order.total || 0).toLocaleString()} F</span></div>
+        ${payment || order.delivery_time ? `<div class="order-meta">${payment ? `<span class="meta-tag">💳 ${payment}</span>` : ''}${order.delivery_time && order.delivery_time !== 'asap' ? `<span class="meta-tag">🕐 ${order.delivery_time}</span>` : ''}</div>` : ''}
+        ${order.notes && !order.notes.includes('Commande WhatsApp') ? `<div class="order-notes">📝 ${order.notes}</div>` : ''}
       </div>
-      <div class="order-time ${isUrgent ? 'urgent' : ''}">
-        <span>⏱️</span><span>Il y a ${timeSince.text}</span>${isUrgent ? '<span>⚠️ RETARD</span>' : ''}
-      </div>
-      <div class="order-customer"><span>👤</span><span>${customer}</span></div>
-      ${order.customer_phone || order.customer_address ? `<div class="order-contact">${order.customer_phone ? `📞 <strong>${order.customer_phone}</strong><br>` : ''}${order.customer_address ? `📍 ${order.customer_address}` : ''}</div>` : ''}
-      <div class="order-items">${itemsHtml || '<div style="text-align:center;color:#999;padding:15px;font-size:0.85rem;">Aucun article</div>'}</div>
-      <div class="order-total"><span class="order-total-label">Total</span><span class="order-total-value">${(order.total || 0).toLocaleString()} F</span></div>
-      ${payment || order.delivery_time ? `<div class="order-meta">${payment ? `<span class="meta-tag">💳 ${payment}</span>` : ''}${order.delivery_time && order.delivery_time !== 'asap' ? `<span class="meta-tag">🕐 ${order.delivery_time}</span>` : ''}</div>` : ''}
-      ${order.notes && !order.notes.includes('Commande WhatsApp') ? `<div class="order-notes">📝 ${order.notes}</div>` : ''}
       <div class="order-actions">${actions}</div>
     </div>`;
 }
@@ -805,96 +709,59 @@ function updateStats() {
 
 async function confirmOrder(orderNumber, btn) {
   if (!confirm(`Confirmer la commande #${orderNumber} ?\n\nElle passera en préparation.`)) return;
-
-  // 1. Désactiver le bouton pour éviter les clics multiples
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = '⏳ Traitement...';
-  }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
 
   try {
     const url = CONFIG.webhook.update_status;
     if (!url) throw new Error('URL non configurée');
-
-    // 2. Envoyer la requête à n8n
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ order_number: orderNumber, state: 'preparing' })
     });
-
     if (!response.ok) throw new Error('HTTP ' + response.status);
-
-    // 3. Attendre la confirmation du serveur
     await response.json();
-
-    // 4. Rafraîchir les données depuis Odoo pour voir le vrai statut
-    showToast(`✅ Commande #${orderNumber} confirmée. Mise à jour...`, 'success');
+    showToast(`✅ Commande #${orderNumber} → En préparation`, 'success');
     await fetchOrders();
-
   } catch (e) {
     console.error(e);
-    showToast(`❌ Erreur lors de la confirmation de #${orderNumber}`, 'error');
-    // En cas d'erreur, on rafraîchit aussi pour être sûr de l'état
+    showToast(`❌ Erreur`, 'error');
     await fetchOrders();
   } finally {
-    // 5. Réactiver le bouton si le rafraîchissement n'a pas recréé la carte
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = '✅ Confirmer la commande';
-    }
+    if (btn) { btn.disabled = false; }
   }
 }
 
 async function updateStatus(orderNumber, newStatus, btn) {
   const messages = {
-    preparing: `Confirmer la commande #${orderNumber} ?\n\nElle passera en préparation.`,
-    ready: `La commande #${orderNumber} est-elle prête ?\n\nElle sera marquée comme prête à être livrée.`,
-    delivering: `Envoyer la commande #${orderNumber} en livraison ?\n\nLe client sera notifié.`,
-    delivered: `Confirmer la livraison de la commande #${orderNumber} ?\n\nLa commande sera clôturée.`,
+    preparing: `Confirmer la commande #${orderNumber} ?`,
+    ready: `La commande #${orderNumber} est-elle prête ?`,
+    delivering: `Envoyer la commande #${orderNumber} en livraison ?`,
+    delivered: `Confirmer la livraison de #${orderNumber} ?`,
     new: `Remettre la commande #${orderNumber} en nouvelle ?`
   };
-
-  if (!confirm(messages[newStatus] || `Changer le statut de #${orderNumber} ?`)) return;
-
-  // 1. Désactiver le bouton pour éviter les clics multiples
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = '⏳ Traitement...';
-  }
+  if (!confirm(messages[newStatus] || `Changer le statut ?`)) return;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
 
   try {
     const url = CONFIG.webhook.update_status;
     if (!url) throw new Error('URL non configurée');
-
-    // 2. Envoyer la requête à n8n
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ order_number: orderNumber, state: newStatus })
     });
-
     if (!response.ok) throw new Error('HTTP ' + response.status);
-
-    // 3. Attendre la confirmation du serveur
     await response.json();
-
-    // 4. Rafraîchir les données depuis Odoo pour voir le vrai statut
-    const labels = { preparing: 'en préparation', ready: 'prête', delivering: 'en livraison', delivered: 'livrée', new: 'nouvelle' };
-    showToast(`✅ Commande #${orderNumber} → ${labels[newStatus] || newStatus}. Mise à jour...`, 'success');
+    const labels = { preparing: 'En préparation', ready: 'Prête', delivering: 'En livraison', delivered: 'Livrée', new: 'Nouvelle' };
+    showToast(`✅ #${orderNumber} → ${labels[newStatus] || newStatus}`, 'success');
     await fetchOrders();
-
   } catch (e) {
     console.error(e);
-    showToast(`❌ Erreur de mise à jour pour #${orderNumber}`, 'error');
-    // En cas d'erreur, on rafraîchit aussi pour être sûr de l'état
+    showToast(`❌ Erreur`, 'error');
     await fetchOrders();
   } finally {
-    // 5. Réactiver le bouton si le rafraîchissement n'a pas recréé la carte
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = newStatus === 'preparing' ? '✅ Confirmer la commande' : 'Mettre à jour';
-    }
+    if (btn) { btn.disabled = false; }
   }
 }
 
