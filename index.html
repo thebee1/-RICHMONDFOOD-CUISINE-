@@ -118,6 +118,7 @@ header {
 }
 .info-bar .left { display: flex; gap: 25px; }
 .info-bar .right { display: flex; gap: 15px; opacity: 0.8; }
+.info-bar #refreshStatus { font-weight: 700; }
 
 /* BOARD & COLUMNS */
 .board {
@@ -139,6 +140,7 @@ header {
   border-top: 5px solid;
   min-height: 0;
   max-height: 100%;
+  height: 100%;
 }
 .column.new { border-top-color: var(--primary); }
 .column.preparing { border-top-color: var(--secondary); }
@@ -179,6 +181,7 @@ header {
   gap: 12px;
   min-height: 0;
   scroll-behavior: smooth;
+  overscroll-behavior: contain;
 }
 .column-body::-webkit-scrollbar { width: 10px; }
 .column-body::-webkit-scrollbar-track { background: #F0F0F0; border-radius: 5px; }
@@ -236,6 +239,8 @@ header {
   padding: 12px 12px 0 12px;
   overflow-y: auto;
   max-height: 280px;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 .order-content::-webkit-scrollbar { width: 6px; }
 .order-content::-webkit-scrollbar-thumb { background: #D0D0D0; border-radius: 3px; }
@@ -319,6 +324,7 @@ header {
   bottom: 0;
   z-index: 10;
   box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+  flex-shrink: 0;
 }
 .btn-action {
   flex: 1;
@@ -402,6 +408,9 @@ header {
   body { overflow: auto; }
   header { padding: 0 15px; }
   .logo-text { font-size: 1rem; }
+  .info-bar { height: auto; min-height: 45px; padding: 8px 15px; gap: 8px; flex-wrap: wrap; }
+  .info-bar .left, .info-bar .right { gap: 10px; flex-wrap: wrap; }
+  .info-bar .right { font-size: 0.75rem; }
 }
 </style>
 </head>
@@ -494,15 +503,57 @@ const STATUSES = [
 
 let orders = [];
 let previousOrderIds = new Set();
+const STATUS_OVERRIDES_KEY = 'richmond_food_status_overrides';
+let statusOverrides = loadStatusOverrides();
 let soundEnabled = true;
 let clockTimer = null;
+let refreshTimer = null;
+let isFetchingOrders = false;
 let firstLoad = true;
+
+function loadStatusOverrides() {
+  try {
+    return JSON.parse(localStorage.getItem(STATUS_OVERRIDES_KEY) || '{}');
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveStatusOverrides() {
+  localStorage.setItem(STATUS_OVERRIDES_KEY, JSON.stringify(statusOverrides));
+}
+
+function getOrderKey(order) {
+  return String(order.order_number || order.id || '');
+}
+
+function applyStatusOverrides(serverOrders) {
+  let overridesChanged = false;
+  const mergedOrders = serverOrders.map(order => {
+    const key = getOrderKey(order);
+    const override = statusOverrides[key];
+    const serverStatus = order.state || order.status;
+
+    if (!override) return order;
+    if (serverStatus === override) {
+      delete statusOverrides[key];
+      overridesChanged = true;
+      return order;
+    }
+
+    return { ...order, state: override };
+  });
+
+  if (overridesChanged) saveStatusOverrides();
+  return mergedOrders;
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
   startClock();
   renderBoard();
   fetchOrders();
+  startAutoRefresh();
   setTimeout(() => document.getElementById('loading').classList.add('hide'), 800);
   soundEnabled = CONFIG.sound_alerts;
   updateSoundBtn();
@@ -534,14 +585,35 @@ function updateClock() {
   document.getElementById('infoTime').textContent = `${h}:${m}`;
 }
 
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+
+  const intervalSeconds = Number(CONFIG.refresh_interval_seconds) || 15;
+  const refreshStatus = document.getElementById('refreshStatus');
+
+  if (!CONFIG.auto_refresh) {
+    refreshStatus.textContent = '🔄 Mode manuel — cliquez sur 🔄 pour actualiser';
+    return;
+  }
+
+  refreshStatus.textContent = `🔄 Actualisation automatique : ${intervalSeconds}s`;
+  refreshTimer = setInterval(fetchOrders, intervalSeconds * 1000);
+}
+
 async function manualRefresh() {
   showToast('🔄 Rafraîchissement...', 'success');
   await fetchOrders();
 }
 
 async function fetchOrders() {
+  if (isFetchingOrders) return;
+  isFetchingOrders = true;
   const url = CONFIG.webhook.get_orders;
-  if (!url) { setOnline(false); return; }
+  if (!url) {
+    setOnline(false);
+    isFetchingOrders = false;
+    return;
+  }
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -553,13 +625,15 @@ async function fetchOrders() {
     const newOrders = Array.isArray(data) ? data : (data.orders || data.data || []);
     if (!firstLoad) detectNewOrders(newOrders);
     firstLoad = false;
-    orders = newOrders;
+    orders = applyStatusOverrides(newOrders);
     renderBoard();
     setOnline(true);
     document.getElementById('lastUpdate').textContent = 'Dernière MAJ : ' + new Date().toLocaleTimeString('fr-FR');
   } catch (e) {
     console.error(e);
     setOnline(false);
+  } finally {
+    isFetchingOrders = false;
   }
 }
 
@@ -646,16 +720,16 @@ function renderOrderCard(order, status) {
     actions = `<button class="btn-action btn-confirm" onclick="confirmOrder('${orderNum}', this)">✅ Confirmer la commande</button>`;
   } else if (status.id === 'preparing') {
     actions = `
-      <button class="btn-action btn-ready" onclick="updateStatus('${orderNum}', 'ready', this)">✅ Prête</button>
+      <button class="btn-action btn-ready" onclick="updateStatus('${orderNum}', 'ready', this)">✅ Confirmer la préparation</button>
       <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'new', this)">↩</button>
     `;
   } else if (status.id === 'ready') {
     actions = `
-      <button class="btn-action btn-deliver" onclick="updateStatus('${orderNum}', 'delivering', this)">🛵 Livraison</button>
+      <button class="btn-action btn-deliver" onclick="updateStatus('${orderNum}', 'delivering', this)">🛵 Envoyer en livraison</button>
       <button class="btn-action btn-back" onclick="updateStatus('${orderNum}', 'preparing', this)">↩</button>
     `;
   } else if (status.id === 'delivering') {
-    actions = `<button class="btn-action btn-confirm" onclick="updateStatus('${orderNum}', 'delivered', this)">🎉 Livrée</button>`;
+    actions = `<button class="btn-action btn-confirm" onclick="updateStatus('${orderNum}', 'delivered', this)">✅ Confirmer la livraison</button>`;
   }
 
   const payment = order.payment_method ? order.payment_method.toUpperCase() : '';
@@ -692,9 +766,10 @@ function getTimeSince(dateStr) {
 }
 
 function updateStats() {
-  document.getElementById('statNew').textContent = orders.filter(o => (o.state || 'new') === 'new').length;
-  document.getElementById('statPrep').textContent = orders.filter(o => (o.state || 'new') === 'preparing').length;
-  document.getElementById('statReady').textContent = orders.filter(o => (o.state || 'new') === 'ready').length;
+  const getStatus = order => order.state || order.status || 'new';
+  document.getElementById('statNew').textContent = orders.filter(o => getStatus(o) === 'new').length;
+  document.getElementById('statPrep').textContent = orders.filter(o => getStatus(o) === 'preparing').length;
+  document.getElementById('statReady').textContent = orders.filter(o => getStatus(o) === 'ready').length;
   document.getElementById('infoTotal').textContent = orders.length;
 }
 
@@ -711,7 +786,9 @@ async function confirmOrder(orderNumber, btn) {
       body: JSON.stringify({ order_number: orderNumber, state: 'preparing' })
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    await response.json();
+    await response.text();
+    statusOverrides[String(orderNumber)] = 'preparing';
+    saveStatusOverrides();
     showToast(`✅ Commande #${orderNumber} → En préparation`, 'success');
     await fetchOrders();
   } catch (e) {
@@ -743,7 +820,9 @@ async function updateStatus(orderNumber, newStatus, btn) {
       body: JSON.stringify({ order_number: orderNumber, state: newStatus })
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    await response.json();
+    await response.text();
+    statusOverrides[String(orderNumber)] = newStatus;
+    saveStatusOverrides();
     const labels = { preparing: 'En préparation', ready: 'Prête', delivering: 'En livraison', delivered: 'Livrée', new: 'Nouvelle' };
     showToast(`✅ #${orderNumber} → ${labels[newStatus] || newStatus}`, 'success');
     await fetchOrders();
@@ -759,8 +838,15 @@ async function updateStatus(orderNumber, newStatus, btn) {
 function setOnline(online) {
   const badge = document.getElementById('statusBadge');
   const text = document.getElementById('statusText');
-  if (online) { badge.classList.remove('offline'); text.textContent = 'En ligne'; }
-  else { badge.classList.add('offline'); text.textContent = 'Hors ligne'; }
+  const lastUpdate = document.getElementById('lastUpdate');
+  if (online) {
+    badge.classList.remove('offline');
+    text.textContent = 'En ligne';
+  } else {
+    badge.classList.add('offline');
+    text.textContent = 'Hors ligne';
+    lastUpdate.textContent = 'Connexion indisponible — nouvelle tentative automatique';
+  }
 }
 
 function toggleSound() {
