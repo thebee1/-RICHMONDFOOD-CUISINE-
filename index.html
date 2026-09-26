@@ -117,7 +117,6 @@ header {
 .info-bar .right { display: flex; gap: 15px; color: var(--gray); }
 .info-bar #refreshStatus { font-weight: 700; color: var(--green); }
 
-/* BOARD & COLUMNS */
 .board {
   flex: 1; padding: 15px;
   display: grid; grid-template-columns: repeat(4, 1fr);
@@ -160,7 +159,6 @@ header {
 .column.ready .column-count { background: #EAF3EC; color: var(--green); }
 .column.delivering .column-count { background: #E8EEF2; color: var(--blue); }
 
-/* SCROLL AREA */
 .column-body {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   padding: 12px; display: flex; flex-direction: column;
@@ -174,7 +172,6 @@ header {
 }
 .column-body::-webkit-scrollbar-thumb:hover { background: var(--green); }
 
-/* INDICATEUR DE SCROLL */
 .scroll-hint {
   text-align: center; padding: 5px;
   color: var(--gray); font-size: 0.75rem; font-weight: 600;
@@ -183,7 +180,6 @@ header {
   background: var(--bg);
 }
 
-/* ORDER CARD */
 .order-card {
   background: var(--card);
   border-radius: 10px;
@@ -209,7 +205,6 @@ header {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* CONTENU SCROLLABLE DE LA CARTE */
 .order-content {
   padding: 12px 12px 0 12px;
   overflow-y: auto; max-height: 280px; min-height: 0;
@@ -286,7 +281,6 @@ header {
   font-weight: 600;
 }
 
-/* BOUTONS STICKY */
 .order-actions {
   display: flex; gap: 8px;
   padding: 10px 12px;
@@ -327,7 +321,6 @@ header {
 .empty-icon { font-size: 3rem; opacity: 0.25; margin-bottom: 15px; }
 .empty-text { font-size: 0.9rem; font-weight: 600; }
 
-/* ALERT, TOAST, LOADING */
 .alert-overlay {
   position: fixed; inset: 0;
   background: linear-gradient(135deg, rgba(30,43,34,0.98), rgba(46,91,63,0.98));
@@ -488,14 +481,17 @@ header {
 <script>
 let CONFIG = {
   restaurant: { name: 'RICHMOND FOOD', tagline: 'Tableau de Bord Cuisine', logo: '🍽️' },
-  webhook: { get_orders: '', update_status: '' },
+  webhook: {
+    get_orders: 'https://deploy-showoff-engaging.ngrok-free.dev/webhook/kitchen-orders',
+    update_status: 'https://deploy-showoff-engaging.ngrok-free.dev/webhook/kitchen-update'
+  },
   refresh_interval_seconds: 15,
   sound_alerts: true,
-  auto_refresh: false,
+  auto_refresh: true,
   urgent_after_minutes: 15
 };
 
-// ✅ HEADERS COMMUNS POUR NGROK (ajoutés partout)
+// ✅ HEADERS COMMUNS POUR NGROK
 const NGROK_HEADERS = {
   'Content-Type': 'application/json',
   'ngrok-skip-browser-warning': 'true'
@@ -571,10 +567,13 @@ async function loadConfig() {
     const r = await fetch('./menu-data.json');
     const data = await r.json();
     CONFIG = { ...CONFIG, ...data };
-    console.log('✅ Config chargée');
+    console.log('✅ Config chargée depuis menu-data.json');
+    console.log('🔗 Webhook get_orders :', CONFIG.webhook.get_orders);
+    console.log('🔗 Webhook update_status :', CONFIG.webhook.update_status);
     console.log('🔄 Auto-refresh :', CONFIG.auto_refresh ? 'ACTIVÉ' : 'DÉSACTIVÉ');
   } catch (e) {
-    console.warn('Config par défaut utilisée');
+    console.warn('⚠️ Config par défaut utilisée (menu-data.json introuvable)');
+    console.log('🔗 Webhook get_orders :', CONFIG.webhook.get_orders);
   }
 }
 
@@ -600,11 +599,13 @@ function startAutoRefresh() {
 
   if (!CONFIG.auto_refresh) {
     refreshStatus.textContent = '🔄 Mode manuel — cliquez sur 🔄 pour actualiser';
+    console.log('⏸️ Auto-refresh désactivé');
     return;
   }
 
   refreshStatus.textContent = `🔄 Actualisation automatique : ${intervalSeconds}s`;
   refreshTimer = setInterval(fetchOrders, intervalSeconds * 1000);
+  console.log('▶️ Auto-refresh activé toutes les', intervalSeconds, 'secondes');
 }
 
 async function manualRefresh() {
@@ -617,20 +618,34 @@ async function fetchOrders() {
   isFetchingOrders = true;
   const url = CONFIG.webhook.get_orders;
   if (!url) {
+    console.error('❌ URL get_orders non configurée');
     setOnline(false);
     isFetchingOrders = false;
     return;
   }
   try {
-    // ✅ HEADER NGROK AJOUTÉ
+    console.log('📡 Fetch:', url);
     const response = await fetch(url, {
       method: 'POST',
       headers: NGROK_HEADERS,
       body: JSON.stringify({ action: 'get_orders' })
     });
+    console.log('📥 Status:', response.status);
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    const data = await response.json();
+
+    const text = await response.text();
+    console.log('📄 Reponse brute:', text.substring(0, 300));
+
+    // Détecter si c'est du HTML (page ngrok)
+    if (text.trim().startsWith('<')) {
+      throw new Error('Recu du HTML au lieu de JSON. Le header ngrok-skip-browser-warning n\'est pas pris en compte.');
+    }
+
+    const data = JSON.parse(text);
     const newOrders = Array.isArray(data) ? data : (data.orders || data.data || []);
+    console.log('✅', newOrders.length, 'commande(s) chargée(s)');
+
     if (!firstLoad) detectNewOrders(newOrders);
     firstLoad = false;
     orders = applyStatusOverrides(newOrders);
@@ -638,8 +653,8 @@ async function fetchOrders() {
     setOnline(true);
     document.getElementById('lastUpdate').textContent = 'Dernière MAJ : ' + new Date().toLocaleTimeString('fr-FR');
   } catch (e) {
-    console.error(e);
-    setOnline(false);
+    console.error('❌ Erreur fetch:', e.message);
+    setOnline(false, e.message);
   } finally {
     isFetchingOrders = false;
   }
@@ -740,7 +755,7 @@ function renderOrderCard(order, status) {
     actions = `<button class="btn-action btn-confirm" onclick="updateStatus('${orderNum}', 'delivered', this)">✅ Confirmer la livraison</button>`;
   }
 
-  actions += `<button class="btn-action btn-delete" onclick="deleteOrder('${orderNum}', this)" title="Supprimer la commande" aria-label="Supprimer la commande">🗑️</button>`;
+  actions += `<button class="btn-action btn-delete" onclick="deleteOrder('${orderNum}', this)" title="Supprimer la commande">🗑️</button>`;
 
   const payment = order.payment_method ? order.payment_method.toUpperCase() : '';
 
@@ -759,7 +774,7 @@ function renderOrderCard(order, status) {
         <div class="order-items">${itemsHtml || '<div style="text-align:center;color:#999;padding:10px;font-size:0.8rem;">Aucun article</div>'}</div>
         <div class="order-total"><span class="order-total-label">Total</span><span class="order-total-value">${(order.total || 0).toLocaleString()} F</span></div>
         ${payment || order.delivery_time ? `<div class="order-meta">${payment ? `<span class="meta-tag">💳 ${payment}</span>` : ''}${order.delivery_time && order.delivery_time !== 'asap' ? `<span class="meta-tag">🕐 ${order.delivery_time}</span>` : ''}</div>` : ''}
-        ${order.notes && !order.notes.includes('Commande WhatsApp') ? `<div class="order-notes">📝 ${order.notes}</div>` : ''}
+        ${order.notes && !order.notes.includes('Commande WhatsApp') && !order.notes.includes('[WA_JID') ? `<div class="order-notes">📝 ${order.notes}</div>` : ''}
       </div>
       <div class="order-actions">${actions}</div>
     </div>`;
@@ -790,7 +805,6 @@ async function confirmOrder(orderNumber, btn) {
   try {
     const url = CONFIG.webhook.update_status;
     if (!url) throw new Error('URL non configurée');
-    // ✅ HEADER NGROK AJOUTÉ
     const response = await fetch(url, {
       method: 'POST',
       headers: NGROK_HEADERS,
@@ -818,7 +832,6 @@ async function deleteOrder(orderNumber, btn) {
   try {
     const url = CONFIG.webhook.update_status;
     if (!url) throw new Error('URL non configurée');
-    // ✅ HEADER NGROK AJOUTÉ
     const response = await fetch(url, {
       method: 'POST',
       headers: NGROK_HEADERS,
@@ -857,7 +870,6 @@ async function updateStatus(orderNumber, newStatus, btn) {
   try {
     const url = CONFIG.webhook.update_status;
     if (!url) throw new Error('URL non configurée');
-    // ✅ HEADER NGROK AJOUTÉ
     const response = await fetch(url, {
       method: 'POST',
       headers: NGROK_HEADERS,
@@ -879,7 +891,7 @@ async function updateStatus(orderNumber, newStatus, btn) {
   }
 }
 
-function setOnline(online) {
+function setOnline(online, reason = '') {
   const badge = document.getElementById('statusBadge');
   const text = document.getElementById('statusText');
   const lastUpdate = document.getElementById('lastUpdate');
@@ -889,7 +901,7 @@ function setOnline(online) {
   } else {
     badge.classList.add('offline');
     text.textContent = 'Hors ligne';
-    lastUpdate.textContent = 'Connexion indisponible — nouvelle tentative automatique';
+    lastUpdate.textContent = reason ? `❌ ${reason}` : 'Connexion indisponible — nouvelle tentative automatique';
   }
 }
 
