@@ -495,6 +495,12 @@ let CONFIG = {
   urgent_after_minutes: 15
 };
 
+// ✅ HEADERS COMMUNS POUR NGROK (ajoutés partout)
+const NGROK_HEADERS = {
+  'Content-Type': 'application/json',
+  'ngrok-skip-browser-warning': 'true'
+};
+
 const STATUSES = [
   { id: 'new', label: 'Nouvelles', icon: '🆕' },
   { id: 'preparing', label: 'En préparation', icon: '👨‍🍳' },
@@ -616,9 +622,10 @@ async function fetchOrders() {
     return;
   }
   try {
+    // ✅ HEADER NGROK AJOUTÉ
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: NGROK_HEADERS,
       body: JSON.stringify({ action: 'get_orders' })
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -783,9 +790,10 @@ async function confirmOrder(orderNumber, btn) {
   try {
     const url = CONFIG.webhook.update_status;
     if (!url) throw new Error('URL non configurée');
+    // ✅ HEADER NGROK AJOUTÉ
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: NGROK_HEADERS,
       body: JSON.stringify({ order_number: orderNumber, state: 'preparing' })
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -810,9 +818,10 @@ async function deleteOrder(orderNumber, btn) {
   try {
     const url = CONFIG.webhook.update_status;
     if (!url) throw new Error('URL non configurée');
+    // ✅ HEADER NGROK AJOUTÉ
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: NGROK_HEADERS,
       body: JSON.stringify({
         action: 'delete_order',
         order_number: orderNumber,
@@ -848,9 +857,10 @@ async function updateStatus(orderNumber, newStatus, btn) {
   try {
     const url = CONFIG.webhook.update_status;
     if (!url) throw new Error('URL non configurée');
+    // ✅ HEADER NGROK AJOUTÉ
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: NGROK_HEADERS,
       body: JSON.stringify({ order_number: orderNumber, state: newStatus })
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
