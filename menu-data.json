@@ -11,5 +11,11 @@
   "refresh_interval_seconds": 15,
   "sound_alerts": true,
   "auto_refresh": true,
-  "urgent_after_minutes": 15
+  "urgent_after_minutes": 15,
+  "statuses": [
+    { "id": "new", "label": "Nouvelles", "icon": "🆕" },
+    { "id": "preparing", "label": "En préparation", "icon": "👨‍🍳" },
+    { "id": "ready", "label": "Prêtes", "icon": "✅" },
+    { "id": "delivering", "label": "En livraison", "icon": "🛵" }
+  ]
 }
